@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tagesübersicht</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer onload="window.__gis=true; window.onGis && window.onGis()"></script>
+<style>
+  :root{
+    --navy:#0B2545; --navy2:#11305a; --navy3:#1a3f70;
+    --ocker:#EE9B00; --ocker-d:#cf8700;
+    --grau:#E5E5E5; --grau2:#d6d8db; --weiss:#f6f6f4;
+    --text:#0B2545; --muted:#58697d; --line:#c9cdd2;
+    --rot:#a8321f; --ok:#2e7d4f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--navy);color:var(--grau);font-family:Inter,system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;margin:0;letter-spacing:.2px}
+  a{color:inherit}
+  .hidden{display:none!important}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ocker);font-weight:600}
+
+  /* Buttons */
+  .btn{background:var(--ocker);color:var(--navy);border:0;border-radius:6px;padding:9px 16px;font:600 14px Inter,sans-serif;cursor:pointer;transition:background .15s}
+  .btn:hover{background:var(--ocker-d)}
+  .btn:disabled{opacity:.55;cursor:default}
+  .btn-sm{padding:6px 12px;font-size:13px}
+  .btn-lg{padding:13px 26px;font-size:15px}
+  .btn-ghost{background:transparent;color:var(--grau);border:1px solid rgba(229,229,229,.3);border-radius:6px;padding:8px 14px;font:500 13px Inter,sans-serif;cursor:pointer}
+  .btn-ghost:hover{border-color:var(--ocker);color:#fff}
+  .btn-line{background:transparent;color:var(--navy);border:1px solid var(--navy);border-radius:6px;padding:6px 12px;font:600 13px Inter,sans-serif;cursor:pointer}
+  .btn-line:hover{background:var(--navy);color:var(--grau)}
+
+  /* Screens */
+  .screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .login-card{max-width:460px;width:100%;text-align:center}
+  .login-card h1{font-size:48px;color:#fff;margin:10px 0 14px}
+  .login-card p{color:#b9c2cd;margin:0 0 26px}
+  .login-card .small{font-size:13px;margin-top:16px;color:#8d9aab}
+  .rule{width:48px;height:2px;background:var(--ocker);margin:0 auto 22px}
+  .err{color:#ffb4a6;font-size:14px;margin-top:16px}
+  .setup-box{max-width:560px;background:var(--grau);color:var(--text);border-radius:10px;padding:28px}
+  .setup-box h2{font-size:28px;margin-bottom:10px}
+  .konten-box{display:grid;gap:14px;width:100%}
+  .konten-box .muted{margin:0;color:var(--muted);font-size:14px}
+  .konten-box label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--muted)}
+  .konten-box input{font:14px Inter,sans-serif;padding:9px 10px;border:1px solid var(--line);border-radius:6px;color:var(--text);background:#fff}
+  .konten-box input:focus{outline:2px solid var(--ocker);outline-offset:-1px;border-color:transparent}
+  .konten-box fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 12px 12px;margin:0}
+  .konten-box legend{font-size:13px;font-weight:600;color:var(--text);padding:0 4px}
+  .row2{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
+  @media (max-width:520px){.row2{grid-template-columns:1fr}}
+  .konten-actions{display:flex;justify-content:flex-end;gap:8px}
+  .setup-box code{background:#fff;padding:2px 6px;border-radius:4px;font-size:13px}
+
+  /* App */
+  .wrap{max-width:1360px;margin:0 auto;padding:30px 24px 40px}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding-bottom:22px;border-bottom:1px solid rgba(229,229,229,.14)}
+  .top h1{font-size:44px;color:#fff;line-height:1.05;margin-top:6px}
+  .top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .accounts{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;background:var(--navy2);border:1px solid rgba(229,229,229,.14);font-size:12.5px;color:#cfd6de}
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:#7d8896}
+  .chip.on .dot{background:#5fbf86}
+  .chip.off{border-color:rgba(238,155,0,.55)}
+  .chip.off .dot{background:var(--ocker)}
+  .chip button{background:none;border:0;color:var(--ocker);font:600 12.5px Inter,sans-serif;cursor:pointer;padding:0}
+
+  .summary{display:flex;gap:28px;flex-wrap:wrap;padding:18px 0 22px;color:#b9c2cd;font-size:14px}
+  .summary b{font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#fff;font-weight:600;margin-right:6px}
+  .summary .warn b{color:var(--ocker)}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:20px;align-items:start}
+  @media (max-width:1150px){.grid{grid-template-columns:1fr 1fr}.grid #mailCard{grid-column:1 / -1}}
+  @media (max-width:740px){.grid{grid-template-columns:1fr}.top h1{font-size:36px}.wrap{padding:22px 16px 32px}}
+
+  .card{background:var(--grau);color:var(--text);border-radius:10px;padding:20px 20px 16px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+  .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .card-head h2{font-size:28px}
+  .sub{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:16px 0 8px;display:flex;justify-content:space-between}
+  .sub:first-of-type{margin-top:4px}
+  .empty{color:var(--muted);font-size:14px;padding:6px 0 10px}
+  .loading{color:var(--muted);font-size:14px;padding:8px 0}
+  .errbox{background:#f6e3df;color:var(--rot);border-radius:6px;padding:10px 12px;font-size:13.5px;margin:6px 0}
+  .reconnect{background:#fff;border:1px dashed var(--ocker);border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13.5px;margin:6px 0}
+
+  /* Events */
+  .ev{display:flex;gap:12px;padding:10px 12px;background:var(--weiss);border-radius:7px;margin-bottom:7px;text-decoration:none;border-left:3px solid var(--navy);transition:transform .1s}
+  .ev:hover{transform:translateX(2px)}
+  .ev.past{opacity:.5}
+  .ev.now{box-shadow:0 0 0 2px var(--ocker) inset}
+  .ev-time{min-width:52px;font-weight:600;font-size:13.5px;line-height:1.3}
+  .ev-time span{font-weight:400;color:var(--muted)}
+  .ev-title{font-weight:600;font-size:14.5px}
+  .ev-meta{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .tag-now{display:inline-block;background:var(--ocker);color:var(--navy);font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:1px;letter-spacing:.05em}
+
+  /* Tasks */
+  .task{display:flex;gap:11px;align-items:flex-start;padding:9px 4px;border-bottom:1px solid var(--line)}
+  .task:last-child{border-bottom:0}
+  .check{flex:none;width:19px;height:19px;border-radius:50%;border:2px solid var(--navy);background:transparent;cursor:pointer;margin-top:1px;padding:0;position:relative}
+  .check:hover{background:var(--ocker);border-color:var(--ocker)}
+  .check.done{background:var(--ok);border-color:var(--ok)}
+  .task-title{font-size:14.5px;font-weight:500}
+  .task-meta{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .task.overdue .task-meta .due{color:var(--rot);font-weight:600}
+  .task.today .task-meta .due{color:var(--ocker-d);font-weight:600}
+  .task.leaving{opacity:.35;transition:opacity .3s}
+
+  /* Mail */
+  .mail{display:block;padding:10px 12px;background:var(--weiss);border-radius:7px;margin-bottom:7px;text-decoration:none}
+  .mail:hover{background:#fff}
+  .mail-top{display:flex;justify-content:space-between;gap:10px;font-size:13.5px}
+  .mail-from{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mail.unread .mail-from::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ocker);margin-right:7px;vertical-align:1px}
+  .mail-date{color:var(--muted);white-space:nowrap;font-size:12.5px}
+  .mail-subj{font-size:14px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mail-snip{font-size:12.5px;color:var(--muted);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* Forms */
+  .form{background:#fff;border-radius:8px;padding:14px;margin-bottom:12px;display:grid;gap:10px}
+  .form .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .form label{font-size:12px;color:var(--muted);font-weight:600;display:grid;gap:4px}
+  .form input,.form select{font:14px Inter,sans-serif;padding:8px 10px;border:1px solid var(--line);border-radius:6px;color:var(--text);background:#fff;width:100%}
+  .form input:focus,.form select:focus{outline:2px solid var(--ocker);outline-offset:-1px;border-color:transparent}
+  .form .inline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);font-weight:500}
+  .form .inline input{width:auto}
+  .form .actions{display:flex;gap:8px;justify-content:flex-end}
+
+  /* Shell mit Seitenleiste */
+  .shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+  .shell .wrap{max-width:1360px;width:100%}
+  .side{background:#081c36;border-right:1px solid rgba(229,229,229,.08);padding:26px 16px;display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh}
+  .brand{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;font-weight:600;color:#fff;display:flex;align-items:center;gap:10px;padding:0 8px}
+  .brand-mark{width:12px;height:12px;background:var(--ocker);transform:rotate(45deg)}
+  .nav{display:flex;flex-direction:column;gap:3px}
+  .nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:7px;text-decoration:none;color:#b9c2cd;font-weight:500;font-size:14.5px;border-left:3px solid transparent}
+  .nav a:hover{background:var(--navy2);color:#fff}
+  .nav a.active{background:var(--navy2);color:#fff;border-left-color:var(--ocker)}
+  .nav .ico{width:18px;text-align:center;color:var(--ocker);font-size:14px}
+  .nav .badge{margin-left:auto;font-size:12px;background:rgba(229,229,229,.12);color:#dfe4ea;border-radius:999px;padding:1px 8px;min-width:22px;text-align:center}
+  .nav .badge:empty{display:none}
+  .side-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px}
+  .side-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7f8ea0;font-weight:600;padding:0 4px}
+  .side .accounts{flex-direction:column}
+  .side .chip{justify-content:flex-start}
+  .side .chip button{margin-left:auto}
+  .side-btn{width:100%}
+
+  /* Unterseiten: nur die passende Karte, volle Breite */
+  .shell[data-view=kalender] #taskCard,.shell[data-view=kalender] #mailCard,
+  .shell[data-view=aufgaben] #calCard,.shell[data-view=aufgaben] #mailCard,
+  .shell[data-view=mails] #calCard,.shell[data-view=mails] #taskCard{display:none}
+  .shell:not([data-view=uebersicht]) .grid{grid-template-columns:1fr}
+  .shell:not([data-view=uebersicht]) #mailCard{grid-column:auto}
+  .shell:not([data-view=uebersicht]) .summary{display:none}
+  .shell:not([data-view=uebersicht]) .card{padding:24px 26px 20px}
+  .shell:not([data-view=uebersicht]) .card-head h2{font-size:34px}
+  .days{display:grid;gap:4px 24px}
+  .shell[data-view=kalender] .days{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .mailcols{display:grid;gap:0 22px}
+  .shell[data-view=mails] .mailcols{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .shell[data-view=aufgaben] #taskBody{columns:2 340px;column-gap:28px}
+  .shell[data-view=aufgaben] .task,.shell[data-view=aufgaben] .sub{break-inside:avoid}
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr}
+    .side{position:sticky;top:0;height:auto;z-index:5;flex-direction:row;align-items:center;padding:10px 12px;gap:12px;overflow-x:auto}
+    .brand{display:none}
+    .nav{flex-direction:row}
+    .nav a{padding:8px 10px;border-left:0;border-bottom:2px solid transparent;white-space:nowrap}
+    .nav a.active{border-bottom-color:var(--ocker)}
+    .side-foot{display:none}
+  }
+
+  .head-btns{display:flex;gap:8px;align-items:center}
+  .icon-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--navy);font-size:16px;cursor:pointer;line-height:1}
+  .icon-btn:hover{border-color:var(--ocker)}
+  .icon-btn:disabled,.btn-ghost:disabled{opacity:.6;cursor:default}
+  .spin{animation:spin .8s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  footer{margin-top:22px;font-size:12.5px;color:#8d9aab;text-align:right}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--grau);color:var(--navy);padding:11px 18px;border-radius:8px;font-size:14px;font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:10}
+  .toast.bad{background:#f6e3df;color:var(--rot)}
+</style>
+</head>
+<body>
+
+<!-- Hinweis, falls die Client-ID noch fehlt -->
+<div id="setup" class="screen hidden">
+  <div class="setup-box">
+    <h2>Noch nicht eingerichtet</h2>
+    <p>In dieser Datei fehlt die Google-Client-ID. Öffne <code>index.html</code>, suche <code>CLIENT_ID</code> ganz oben im Skript und trage deine ID ein. Die Schritte stehen in der Anleitung.</p>
+  </div>
+</div>
+
+<!-- Konten einrichten (nur lokal gespeichert) -->
+<div id="konten" class="screen hidden">
+  <form id="kontenForm" class="setup-box konten-box" autocomplete="off">
+    <div class="eyebrow">Einmalige Einrichtung</div>
+    <h2>Deine Konten</h2>
+    <p class="muted">Die Angaben bleiben nur in diesem Browser gespeichert und stehen nirgends im Code.</p>
+    <label>Dein Vorname<input name="name" placeholder="z. B. Kai"></label>
+    <fieldset>
+      <legend>Hauptkonto – Login, Kalender, Aufgaben und Mails</legend>
+      <div class="row2"><label>E-Mail<input name="e0" type="email" required placeholder="name@gmail.com"></label><label>Anzeigename<input name="l0" placeholder="z. B. Geschäftlich"></label></div>
+    </fieldset>
+    <fieldset>
+      <legend>Weiteres Postfach (optional)</legend>
+      <div class="row2"><label>E-Mail<input name="e1" type="email" placeholder="name@gmail.com"></label><label>Anzeigename<input name="l1"></label></div>
+    </fieldset>
+    <fieldset>
+      <legend>Weiteres Postfach (optional)</legend>
+      <div class="row2"><label>E-Mail<input name="e2" type="email" placeholder="name@gmail.com"></label><label>Anzeigename<input name="l2"></label></div>
+    </fieldset>
+    <div class="konten-actions"><button type="button" class="btn-line hidden" id="kontenCancel">Abbrechen</button><button class="btn" type="submit">Speichern und weiter</button></div>
+  </form>
+</div>
+
+<!-- Login -->
+<div id="login" class="screen hidden">
+  <div class="login-card">
+    <div class="eyebrow">Tagesübersicht</div>
+    <h1 id="loginGreet">Guten Morgen.</h1>
+    <div class="rule"></div>
+    <p>Termine, Aufgaben und offene Mails aus allen drei Konten auf einen Blick.</p>
+    <button id="loginBtn" class="btn btn-lg">Mit Google anmelden</button>
+    <p id="loginErr" class="err hidden"></p>
+    <p class="small" id="loginHint"></p>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="app" class="hidden shell" data-view="uebersicht">
+  <aside class="side">
+    <div class="brand"><span class="brand-mark"></span>Tagesübersicht</div>
+    <nav class="nav">
+      <a href="#/" data-nav="uebersicht"><span class="ico">◇</span>Übersicht</a>
+      <a href="#/kalender" data-nav="kalender"><span class="ico">▦</span>Kalender<span class="badge" id="navCal"></span></a>
+      <a href="#/aufgaben" data-nav="aufgaben"><span class="ico">✓</span>Aufgaben<span class="badge" id="navTask"></span></a>
+      <a href="#/mails" data-nav="mails"><span class="ico">✉</span>Mails<span class="badge" id="navMail"></span></a>
+    </nav>
+    <div class="side-foot">
+      <div class="side-label">Konten</div>
+      <div id="accounts" class="accounts"></div>
+      <button id="kontenBtn" class="btn-ghost side-btn">Konten ändern</button>
+      <button id="logoutBtn" class="btn-ghost side-btn">Abmelden</button>
+    </div>
+  </aside>
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <div class="eyebrow" id="dateLine"></div>
+        <h1 id="greet"></h1>
+      </div>
+      <div class="top-actions">
+        <button id="refreshBtn" class="btn-ghost" title="Alles jetzt neu laden (Taste R)">↻ Jetzt aktualisieren</button>
+      </div>
+    </header>
+
+    <div id="summary" class="summary"></div>
+
+    <main class="grid">
+      <section class="card" id="calCard">
+        <div class="card-head"><h2>Termine</h2><div class="head-btns"><button class="icon-btn" data-refresh="cal" title="Kalender jetzt neu laden">↻</button><button class="btn btn-sm" data-toggle="eventForm">+ Termin</button></div></div>
+        <form id="eventForm" class="form hidden" autocomplete="off">
+          <label>Titel<input name="title" required placeholder="z. B. Kundentermin"></label>
+          <div class="row">
+            <label>Datum<input name="date" type="date" required></label>
+            <label>Ort<input name="location" placeholder="optional"></label>
+          </div>
+          <label class="inline"><input type="checkbox" name="allday"> Ganztägig</label>
+          <div class="row" data-times>
+            <label>Beginn<input name="start" type="time" value="09:00"></label>
+            <label>Ende<input name="end" type="time" value="10:00"></label>
+          </div>
+          <div class="actions"><button type="button" class="btn-line" data-toggle="eventForm">Abbrechen</button><button class="btn btn-sm" type="submit">Termin speichern</button></div>
+        </form>
+        <div id="calBody"></div>
+      </section>
+
+      <section class="card" id="taskCard">
+        <div class="card-head"><h2>Aufgaben</h2><div class="head-btns"><button class="icon-btn" data-refresh="tasks" title="Aufgaben jetzt neu laden">↻</button><button class="btn btn-sm" data-toggle="taskForm">+ Aufgabe</button></div></div>
+        <form id="taskForm" class="form hidden" autocomplete="off">
+          <label>Aufgabe<input name="title" required placeholder="Was ist zu tun?"></label>
+          <div class="row">
+            <label>Liste<select name="list"></select></label>
+            <label>Fällig am<input name="due" type="date"></label>
+          </div>
+          <div class="actions"><button type="button" class="btn-line" data-toggle="taskForm">Abbrechen</button><button class="btn btn-sm" type="submit">Aufgabe speichern</button></div>
+        </form>
+        <div id="taskBody"></div>
+      </section>
+
+      <section class="card" id="mailCard">
+        <div class="card-head"><h2>Warten auf Antwort</h2><div class="head-btns"><button class="icon-btn" data-refresh="mail" title="Mails jetzt neu laden">↻</button></div></div>
+        <div id="mailBody"></div>
+      </section>
+    </main>
+
+    <footer id="lastUpdate"></footer>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+/* ============================================================
+   EINSTELLUNGEN – nur hier musst du etwas ändern
+   ============================================================ */
+const CONFIG = {
+  // Client-ID aus der Google Cloud Console (siehe Anleitung)
+  CLIENT_ID: '1043331331500-1lh33v00ufht67n22sap820akkdtk6ss.apps.googleusercontent.com',
+
+  // Name und Konten stehen bewusst NICHT im Code. Sie werden beim ersten Start
+  // in der App eingetragen und nur im Browser gespeichert.
+  NAME: '',
+  ACCOUNTS: [],
+
+  MAIL_DAYS: 14,        // wie weit zurück nach unbeantworteten Mails gesucht wird
+  MAIL_MAX: 25,         // max. Unterhaltungen pro Konto
+  REFRESH_MINUTES: 5,   // automatische Aktualisierung
+};
+/* ============================================================ */
+
+const SCOPES = {
+  mail:     ['https://www.googleapis.com/auth/gmail.readonly'],
+  calendar: ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events'],
+  tasks:    ['https://www.googleapis.com/auth/tasks'],
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const fmtTime = d => d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+/* ---------- Konten (lokal im Browser gespeichert) ---------- */
+const ACC_KEY = 'tagesuebersicht_konten';
+let MAIN, CAL_ACC, TASK_ACC, MAIL_ACCS = [];
+function loadAccounts() {
+  try {
+    const c = JSON.parse(localStorage.getItem(ACC_KEY) || 'null');
+    if (c && Array.isArray(c.accounts) && c.accounts.length) { CONFIG.ACCOUNTS = c.accounts; CONFIG.NAME = c.name || ''; }
+  } catch {}
+  MAIN = CONFIG.ACCOUNTS.find(a => a.main) || CONFIG.ACCOUNTS[0];
+  CAL_ACC = CONFIG.ACCOUNTS.find(a => a.calendar);
+  TASK_ACC = CONFIG.ACCOUNTS.find(a => a.tasks);
+  MAIL_ACCS = CONFIG.ACCOUNTS.filter(a => a.mail);
+}
+loadAccounts();
+
+/* ---------- Token-Speicher ---------- */
+const TOKEN_KEY = 'tagesuebersicht_tokens';
+let tokens = (() => { try { return JSON.parse(localStorage.getItem(TOKEN_KEY) || '{}'); } catch { return {}; } })();
+const saveTokens = () => { try { localStorage.setItem(TOKEN_KEY, JSON.stringify(tokens)); } catch {} };
+const valid = acc => { const t = tokens[acc.email]; return !!(t && t.exp > Date.now() + 30000); };
+
+class AuthError extends Error { constructor(acc) { super('Verbindung abgelaufen'); this.acc = acc; } }
+
+function scopesFor(acc) {
+  return [...(acc.mail ? SCOPES.mail : []), ...(acc.calendar ? SCOPES.calendar : []), ...(acc.tasks ? SCOPES.tasks : [])];
+}
+
+/* Öffnet das Google-Fenster für ein Konto. Muss durch einen Klick ausgelöst werden. */
+function connect(acc) {
+  return new Promise((resolve, reject) => {
+    if (!window.google?.accounts?.oauth2) return reject(new Error('Google-Login lädt noch. Bitte gleich nochmal klicken.'));
+    const scopes = scopesFor(acc);
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: CONFIG.CLIENT_ID,
+      scope: scopes.join(' '),
+      hint: acc.email,
+      callback: async resp => {
+        if (resp.error) return reject(new Error(resp.error_description || resp.error));
+        if (!google.accounts.oauth2.hasGrantedAllScopes(resp, ...scopes)) {
+          google.accounts.oauth2.revoke(resp.access_token, () => {});
+          return reject(new Error('Nicht alle Berechtigungen erteilt. Bitte beim Login alle Häkchen setzen.'));
+        }
+        try {
+          const r = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', { headers: { Authorization: 'Bearer ' + resp.access_token } });
+          const p = await r.json();
+          if ((p.emailAddress || '').toLowerCase() !== acc.email.toLowerCase()) {
+            google.accounts.oauth2.revoke(resp.access_token, () => {});
+            return reject(new Error(`Falsches Konto gewählt (${p.emailAddress || 'unbekannt'}). Bitte ${acc.email} auswählen.`));
+          }
+        } catch (e) { return reject(new Error('Konto konnte nicht geprüft werden: ' + e.message)); }
+        tokens[acc.email] = { access_token: resp.access_token, exp: Date.now() + (Number(resp.expires_in) - 60) * 1000 };
+        saveTokens();
+        resolve();
+      },
+      error_callback: err => reject(new Error(err.type === 'popup_closed' ? 'Anmeldefenster wurde geschlossen.' : err.type === 'popup_failed_to_open' ? 'Popup wurde blockiert. Bitte Popups für diese Seite erlauben.' : (err.message || err.type))),
+    });
+    client.requestAccessToken({ prompt: '' });
+  });
+}
+
+/* ---------- API ---------- */
+async function api(acc, url, opts = {}) {
+  if (!valid(acc)) throw new AuthError(acc);
+  const headers = { Authorization: 'Bearer ' + tokens[acc.email].access_token };
+  if (opts.body) headers['Content-Type'] = 'application/json';
+  const r = await fetch(url, { ...opts, headers });
+  if (r.status === 401) { delete tokens[acc.email]; saveTokens(); throw new AuthError(acc); }
+  if (!r.ok) {
+    let m = 'Fehler ' + r.status;
+    try { const j = await r.json(); m = j.error?.message || m; } catch {}
+    throw new Error(m);
+  }
+  return r.status === 204 ? null : r.json();
+}
+
+async function pMap(items, fn, limit = 5) {
+  const out = new Array(items.length); let i = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (i < items.length) { const k = i++; out[k] = await fn(items[k]); }
+  }));
+  return out;
+}
+
+/* ---------- Zustand ---------- */
+const state = {
+  events: null, calError: null,
+  tasks: null, lists: [], taskError: null,
+  mail: {},            // email -> { items, error }
+  lastUpdate: null,
+};
+
+/* ---------- Kalender ---------- */
+function evRange(e) {
+  if (e.start.date) {
+    const [y, m, d] = e.start.date.split('-').map(Number);
+    const [y2, m2, d2] = e.end.date.split('-').map(Number);
+    return { s: new Date(y, m - 1, d), e: new Date(y2, m2 - 1, d2), allDay: true };
+  }
+  return { s: new Date(e.start.dateTime), e: new Date(e.end.dateTime), allDay: false };
+}
+
+async function loadCalendar() {
+  const acc = CAL_ACC;
+  const start = new Date(); start.setHours(0, 0, 0, 0);
+  const end = new Date(start); end.setDate(end.getDate() + 7);
+  const calList = await api(acc, 'https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=reader&maxResults=100');
+  const cals = (calList.items || []).filter(c => c.selected || c.primary);
+  const all = [];
+  await pMap(cals, async c => {
+    const q = new URLSearchParams({ timeMin: start.toISOString(), timeMax: end.toISOString(), singleEvents: 'true', orderBy: 'startTime', maxResults: '100' });
+    const d = await api(acc, `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(c.id)}/events?${q}`);
+    for (const e of d.items || []) {
+      if (e.status === 'cancelled') continue;
+      const self = (e.attendees || []).find(a => a.self);
+      if (self && self.responseStatus === 'declined') continue;
+      all.push({ ...e, _cal: c.summaryOverride || c.summary, _color: c.backgroundColor, _r: evRange(e) });
+    }
+  }, 4);
+  all.sort((a, b) => (b._r.allDay - a._r.allDay) || (a._r.s - b._r.s));
+  state.events = all;
+}
+
+function eventsOn(day) {
+  const s = new Date(day); s.setHours(0, 0, 0, 0);
+  const e = new Date(s); e.setDate(e.getDate() + 1);
+  return (state.events || []).filter(ev => ev._r.s < e && ev._r.e > s);
+}
+
+function renderCalendar() {
+  const el = $('#calBody');
+  if (!CAL_ACC) { el.innerHTML = '<div class="empty">Kein Kalender-Konto eingestellt.</div>'; return; }
+  if (!valid(CAL_ACC)) { el.innerHTML = reconnectBox(CAL_ACC); return; }
+  if (state.calError) { el.innerHTML = `<div class="errbox">${esc(state.calError)}</div>`; return; }
+  if (!state.events) { el.innerHTML = '<div class="loading">Lädt …</div>'; return; }
+  const now = new Date();
+  const block = (label, day) => {
+    const list = eventsOn(day);
+    let h = `<div class="sub"><span>${label}</span><span>${list.length || ''}</span></div>`;
+    if (!list.length) return h + '<div class="empty">Keine Termine.</div>';
+    for (const ev of list) {
+      const r = ev._r;
+      const running = !r.allDay && r.s <= now && r.e > now;
+      const past = !r.allDay && r.e <= now;
+      const time = r.allDay ? 'Ganz-<br>tägig' : `${fmtTime(r.s)}<br><span>${fmtTime(r.e)}</span>`;
+      const link = ev.htmlLink ? ev.htmlLink + (ev.htmlLink.includes('?') ? '&' : '?') + 'authuser=' + encodeURIComponent(CAL_ACC.email) : '#';
+      const meta = [ev._cal, ev.location].filter(Boolean).map(esc).join(' · ');
+      h += `<a class="ev ${past ? 'past' : ''} ${running ? 'now' : ''}" style="border-left-color:${esc(ev._color || '#0B2545')}" href="${esc(link)}" target="_blank" rel="noopener">
+        <div class="ev-time">${time}</div>
+        <div><div class="ev-title">${esc(ev.summary || '(ohne Titel)')}${running ? '<span class="tag-now">JETZT</span>' : ''}</div>
+        <div class="ev-meta">${meta}</div></div></a>`;
+    }
+    return h;
+  };
+  const n = currentView() === 'kalender' ? 7 : 2;
+  let h = '';
+  for (let i = 0; i < n; i++) {
+    const d = new Date(); d.setDate(d.getDate() + i);
+    const label = i === 0 ? 'Heute' : i === 1 ? 'Morgen' : d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+    h += `<div>${block(label, d)}</div>`;
+  }
+  el.innerHTML = `<div class="days">${h}</div>`;
+}
+
+async function createEvent(form) {
+  const f = new FormData(form);
+  const title = f.get('title').trim(); const date = f.get('date');
+  const body = { summary: title };
+  if (f.get('location')) body.location = f.get('location');
+  if (f.get('allday')) {
+    const [y, m, d] = date.split('-').map(Number);
+    const next = new Date(y, m - 1, d + 1);
+    body.start = { date }; body.end = { date: ymd(next) };
+  } else {
+    const s = f.get('start'), e = f.get('end');
+    if (!s || !e || e <= s) throw new Error('Ende muss nach dem Beginn liegen.');
+    body.start = { dateTime: `${date}T${s}:00`, timeZone: TZ };
+    body.end = { dateTime: `${date}T${e}:00`, timeZone: TZ };
+  }
+  await api(CAL_ACC, 'https://www.googleapis.com/calendar/v3/calendars/primary/events', { method: 'POST', body: JSON.stringify(body) });
+}
+
+/* ---------- Aufgaben ---------- */
+async function loadTasks() {
+  const acc = TASK_ACC;
+  const l = await api(acc, 'https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=100');
+  const lists = l.items || [];
+  const all = [];
+  await pMap(lists, async list => {
+    let pageToken = '';
+    do {
+      const q = new URLSearchParams({ showCompleted: 'false', showHidden: 'false', maxResults: '100' });
+      if (pageToken) q.set('pageToken', pageToken);
+      const d = await api(acc, `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(list.id)}/tasks?${q}`);
+      for (const t of d.items || []) if (t.title && t.title.trim()) all.push({ ...t, _list: list.id, _listTitle: list.title });
+      pageToken = d.nextPageToken || '';
+    } while (pageToken);
+  }, 4);
+  const todayStr = ymd(new Date());
+  all.forEach(t => { t._due = t.due ? t.due.slice(0, 10) : null; t._state = !t._due ? 'none' : t._due < todayStr ? 'overdue' : t._due === todayStr ? 'today' : 'later'; });
+  const rank = { overdue: 0, today: 1, later: 2, none: 3 };
+  all.sort((a, b) => (rank[a._state] - rank[b._state]) || ((a._due || '').localeCompare(b._due || '')) || (a.position || '').localeCompare(b.position || ''));
+  state.lists = lists; state.tasks = all;
+  fillListSelect();
+}
+
+function fillListSelect() {
+  const sel = $('#taskForm select[name=list]');
+  const cur = sel.value;
+  sel.innerHTML = state.lists.map(l => `<option value="${esc(l.id)}">${esc(l.title)}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+function fmtDue(s) { const [y, m, d] = s.split('-'); return `${d}.${m}.`; }
+
+function renderTasks() {
+  const el = $('#taskBody');
+  if (!TASK_ACC) { el.innerHTML = '<div class="empty">Kein Aufgaben-Konto eingestellt.</div>'; return; }
+  if (!valid(TASK_ACC)) { el.innerHTML = reconnectBox(TASK_ACC); return; }
+  if (state.taskError) { el.innerHTML = `<div class="errbox">${esc(state.taskError)}</div>`; return; }
+  if (!state.tasks) { el.innerHTML = '<div class="loading">Lädt …</div>'; return; }
+  if (!state.tasks.length) { el.innerHTML = '<div class="empty">Nichts offen.</div>'; return; }
+  const multi = state.lists.length > 1;
+  const groups = [['Überfällig', 'overdue'], ['Heute', 'today'], ['Demnächst', 'later'], ['Ohne Datum', 'none']];
+  let h = '';
+  for (const [label, key] of groups) {
+    const list = state.tasks.filter(t => t._state === key);
+    if (!list.length) continue;
+    h += `<div class="sub"><span>${label}</span><span>${list.length}</span></div>`;
+    for (const t of list) {
+      const meta = [multi ? esc(t._listTitle) : '', t._due ? `<span class="due">fällig ${fmtDue(t._due)}</span>` : ''].filter(Boolean).join(' · ');
+      h += `<div class="task ${t._state}" data-task="${esc(t.id)}">
+        <button class="check" title="Als erledigt markieren" data-complete="${esc(t._list)}|${esc(t.id)}"></button>
+        <div><div class="task-title">${esc(t.title)}</div>${meta ? `<div class="task-meta">${meta}</div>` : ''}</div></div>`;
+    }
+  }
+  el.innerHTML = h;
+}
+
+async function completeTask(listId, taskId, btn) {
+  btn.classList.add('done'); btn.disabled = true;
+  const row = btn.closest('.task'); row.classList.add('leaving');
+  try {
+    await api(TASK_ACC, `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(listId)}/tasks/${encodeURIComponent(taskId)}`, { method: 'PATCH', body: JSON.stringify({ status: 'completed' }) });
+    state.tasks = state.tasks.filter(t => t.id !== taskId);
+    renderTasks(); renderSummary();
+  } catch (e) {
+    btn.classList.remove('done'); btn.disabled = false; row.classList.remove('leaving');
+    handleError(e);
+  }
+}
+
+async function createTask(form) {
+  const f = new FormData(form);
+  const body = { title: f.get('title').trim() };
+  if (f.get('due')) body.due = f.get('due') + 'T00:00:00.000Z';
+  await api(TASK_ACC, `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(f.get('list'))}/tasks`, { method: 'POST', body: JSON.stringify(body) });
+}
+
+/* ---------- Mail ---------- */
+const AUTO_FROM = /(no-?reply|do-?not-?reply|donotreply|mailer-daemon|postmaster|notifications?@|newsletter|bounce)/i;
+
+async function loadMail(acc) {
+  const q = `in:inbox -from:me -category:promotions -category:social -category:updates -category:forums newer_than:${CONFIG.MAIL_DAYS}d`;
+  const list = await api(acc, `https://gmail.googleapis.com/gmail/v1/users/me/threads?${new URLSearchParams({ q, maxResults: String(CONFIG.MAIL_MAX) })}`);
+  const threads = list.threads || [];
+  const hdrQ = ['From', 'Subject', 'Date', 'List-Unsubscribe', 'Auto-Submitted', 'Precedence'].map(h => 'metadataHeaders=' + encodeURIComponent(h)).join('&');
+  const details = await pMap(threads, t => api(acc, `https://gmail.googleapis.com/gmail/v1/users/me/threads/${t.id}?format=metadata&${hdrQ}`), 5);
+  const items = [];
+  for (const th of details) {
+    const msgs = (th.messages || []).filter(m => !(m.labelIds || []).includes('DRAFT'));
+    if (!msgs.length) continue;
+    const last = msgs[msgs.length - 1];
+    const labels = last.labelIds || [];
+    if (labels.includes('SENT')) continue;                       // zuletzt hast du geschrieben → beantwortet
+    const h = {};
+    for (const x of last.payload?.headers || []) h[x.name.toLowerCase()] = x.value;
+    if (h['list-unsubscribe']) continue;                         // Newsletter & Co.
+    if (h['auto-submitted'] && h['auto-submitted'].toLowerCase() !== 'no') continue;
+    if (/^(bulk|list|junk)$/i.test(h['precedence'] || '')) continue;
+    if (AUTO_FROM.test(h['from'] || '')) continue;
+    const m = (h['from'] || '').match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>/);
+    items.push({
+      id: th.id,
+      from: (m && m[1].trim()) || (m && m[2]) || h['from'] || 'Unbekannt',
+      subject: h['subject'] || '(kein Betreff)',
+      snippet: decodeEntities(last.snippet || ''),
+      date: new Date(Number(last.internalDate)),
+      unread: labels.includes('UNREAD'),
+    });
+  }
+  items.sort((a, b) => b.date - a.date);
+  state.mail[acc.email] = { items };
+}
+
+function decodeEntities(s) { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; }
+
+function relDate(d) {
+  const now = new Date();
+  if (ymd(d) === ymd(now)) return fmtTime(d);
+  const y = new Date(now); y.setDate(y.getDate() - 1);
+  if (ymd(d) === ymd(y)) return 'gestern';
+  const days = Math.floor((now - d) / 864e5);
+  if (days < 7) return d.toLocaleDateString('de-DE', { weekday: 'short' });
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+}
+
+function renderMail() {
+  const el = $('#mailBody');
+  let h = '';
+  for (const acc of MAIL_ACCS) {
+    const s = state.mail[acc.email];
+    const n = s?.items?.length;
+    if (h) h += '</div>';
+    h += `<div><div class="sub"><span>${esc(acc.label)}</span><span>${n ?? ''}</span></div>`;
+    if (!valid(acc)) { h += reconnectBox(acc); continue; }
+    if (!s) { h += '<div class="loading">Lädt …</div>'; continue; }
+    if (s.error) { h += `<div class="errbox">${esc(s.error)}</div>`; continue; }
+    if (!s.items.length) { h += '<div class="empty">Alles beantwortet.</div>'; continue; }
+    for (const m of s.items) {
+      const link = `https://mail.google.com/mail/?authuser=${encodeURIComponent(acc.email)}#all/${m.id}`;
+      h += `<a class="mail ${m.unread ? 'unread' : ''}" href="${esc(link)}" target="_blank" rel="noopener">
+        <div class="mail-top"><span class="mail-from">${esc(m.from)}</span><span class="mail-date">${esc(relDate(m.date))}</span></div>
+        <div class="mail-subj">${esc(m.subject)}</div>
+        <div class="mail-snip">${esc(m.snippet)}</div></a>`;
+    }
+  }
+  el.innerHTML = `<div class="mailcols">${h}${h ? '</div>' : ''}</div>`;
+}
+
+/* ---------- Navigation ---------- */
+const VIEWS = { '': 'uebersicht', 'kalender': 'kalender', 'aufgaben': 'aufgaben', 'mails': 'mails' };
+const TITLES = { uebersicht: null, kalender: 'Kalender', aufgaben: 'Aufgaben', mails: 'Mails' };
+function currentView() { return VIEWS[location.hash.replace(/^#\/?/, '').toLowerCase()] || 'uebersicht'; }
+function applyView() {
+  const v = currentView();
+  $('#app').dataset.view = v;
+  document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === v));
+  document.title = TITLES[v] ? TITLES[v] + ' · Tagesübersicht' : 'Tagesübersicht';
+  $('#calCard h2').textContent = v === 'kalender' ? 'Die nächsten 7 Tage' : 'Termine';
+  renderHeader(); renderCalendar(); renderTasks(); renderMail();
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', applyView);
+
+function renderNavBadges() {
+  $('#navCal').textContent = state.events ? (eventsOn(new Date()).length || '') : '';
+  $('#navTask').textContent = state.tasks ? (state.tasks.filter(t => t._state === 'overdue' || t._state === 'today').length || '') : '';
+  const m = MAIL_ACCS.reduce((s, a) => s + (state.mail[a.email]?.items?.length || 0), 0);
+  $('#navMail').textContent = m || '';
+}
+
+/* ---------- Kopf, Übersicht, Konten ---------- */
+function greeting() {
+  const h = new Date().getHours();
+  return (h < 11 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend') + (CONFIG.NAME ? ', ' + CONFIG.NAME : '') + '.';
+}
+
+function renderHeader() {
+  $('#dateLine').textContent = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  $('#greet').textContent = greeting();
+}
+
+function renderAccounts() {
+  $('#accounts').innerHTML = CONFIG.ACCOUNTS.map(a => valid(a)
+    ? `<span class="chip on" title="${esc(a.email)}"><span class="dot"></span>${esc(a.label)}</span>`
+    : `<span class="chip off" title="${esc(a.email)}"><span class="dot"></span>${esc(a.label)} <button data-connect="${esc(a.email)}">Verbinden</button></span>`
+  ).join('');
+}
+
+function renderSummary() {
+  const parts = [];
+  if (state.events) {
+    const n = eventsOn(new Date()).length;
+    parts.push(`<span><b>${n}</b>${n === 1 ? 'Termin' : 'Termine'} heute</span>`);
+  }
+  if (state.tasks) {
+    const over = state.tasks.filter(t => t._state === 'overdue').length;
+    const due = state.tasks.filter(t => t._state === 'today').length;
+    parts.push(`<span><b>${due}</b>Aufgaben heute fällig</span>`);
+    if (over) parts.push(`<span class="warn"><b>${over}</b>überfällig</span>`);
+  }
+  const mails = MAIL_ACCS.reduce((s, a) => s + (state.mail[a.email]?.items?.length || 0), 0);
+  if (Object.keys(state.mail).length) parts.push(`<span><b>${mails}</b>Mails warten auf Antwort</span>`);
+  $('#summary').innerHTML = parts.join('');
+  renderNavBadges();
+}
+
+function reconnectBox(acc) {
+  return `<div class="reconnect"><span>${esc(acc.label)} ist nicht verbunden.</span><button class="btn btn-sm" data-connect="${esc(acc.email)}">Verbinden</button></div>`;
+}
+
+function renderAll() { renderHeader(); renderAccounts(); renderCalendar(); renderTasks(); renderMail(); renderSummary(); }
+
+/* ---------- Laden ---------- */
+let loading = false;
+async function loadAll() {
+  if (loading) return; loading = true;
+  const rb = $('#refreshBtn'); rb.disabled = true; rb.innerHTML = '<span class="spin">↻</span> Lädt …';
+  renderAll();
+  const jobs = [];
+  if (CAL_ACC && valid(CAL_ACC)) jobs.push(loadCalendar().then(() => state.calError = null).catch(e => { if (!(e instanceof AuthError)) state.calError = e.message; }).finally(() => { renderCalendar(); renderSummary(); }));
+  if (TASK_ACC && valid(TASK_ACC)) jobs.push(loadTasks().then(() => state.taskError = null).catch(e => { if (!(e instanceof AuthError)) state.taskError = e.message; }).finally(() => { renderTasks(); renderSummary(); }));
+  for (const acc of MAIL_ACCS) if (valid(acc)) jobs.push(loadMail(acc).catch(e => { if (!(e instanceof AuthError)) state.mail[acc.email] = { error: e.message }; }).finally(() => { renderMail(); renderSummary(); }));
+  await Promise.all(jobs);
+  state.lastUpdate = new Date();
+  $('#lastUpdate').textContent = 'Stand ' + fmtTime(state.lastUpdate) + ' Uhr';
+  renderAccounts();
+  rb.disabled = false; rb.innerHTML = '↻ Jetzt aktualisieren';
+  loading = false;
+}
+
+/* Einzelnen Bereich sofort neu laden */
+async function refreshSection(which, btn) {
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin">↻</span>'; }
+  try {
+    if (which === 'cal' && CAL_ACC) { await loadCalendar(); state.calError = null; renderCalendar(); }
+    if (which === 'tasks' && TASK_ACC) { await loadTasks(); state.taskError = null; renderTasks(); }
+    if (which === 'mail') {
+      await Promise.all(MAIL_ACCS.filter(valid).map(a => loadMail(a).catch(e => { if (e instanceof AuthError) throw e; state.mail[a.email] = { error: e.message }; })));
+      renderMail();
+    }
+    renderSummary();
+    state.lastUpdate = new Date(); $('#lastUpdate').textContent = 'Stand ' + fmtTime(state.lastUpdate) + ' Uhr';
+  } catch (e) { handleError(e); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = '↻'; } }
+}
+
+/* ---------- Bildschirme ---------- */
+function show(id) { for (const s of ['setup', 'konten', 'login', 'app']) $('#' + s).classList.toggle('hidden', s !== id); }
+
+function toast(msg, bad = false) {
+  const t = $('#toast'); t.textContent = msg; t.classList.toggle('bad', bad); t.classList.remove('hidden');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.add('hidden'), 4000);
+}
+
+function handleError(e) {
+  if (e instanceof AuthError) { toast(`${e.acc.label}: Verbindung abgelaufen. Bitte neu verbinden.`, true); renderAll(); }
+  else toast(e.message, true);
+}
+
+function start() {
+  if (!CONFIG.CLIENT_ID || CONFIG.CLIENT_ID.startsWith('HIER_')) return show('setup');
+  if (!CONFIG.ACCOUNTS.length) return openKonten();
+  if (valid(MAIN)) { show('app'); applyView(); loadAll(); }
+  else {
+    $('#loginGreet').textContent = greeting();
+    $('#loginHint').textContent = 'Anmeldung mit ' + MAIN.email;
+    show('login');
+  }
+}
+
+/* ---------- Ereignisse ---------- */
+$('#loginBtn').addEventListener('click', async () => {
+  const btn = $('#loginBtn'); btn.disabled = true; $('#loginErr').classList.add('hidden');
+  try { await connect(MAIN); show('app'); applyView(); loadAll(); }
+  catch (e) { $('#loginErr').textContent = e.message; $('#loginErr').classList.remove('hidden'); }
+  finally { btn.disabled = false; }
+});
+
+document.addEventListener('click', async ev => {
+  const c = ev.target.closest('[data-connect]');
+  if (c) {
+    const acc = CONFIG.ACCOUNTS.find(a => a.email === c.dataset.connect);
+    c.disabled = true;
+    try { await connect(acc); toast(acc.label + ' verbunden.'); loadAll(); }
+    catch (e) { toast(e.message, true); c.disabled = false; }
+    return;
+  }
+  const t = ev.target.closest('[data-toggle]');
+  if (t) {
+    const form = $('#' + t.dataset.toggle);
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden')) {
+      if (form.id === 'eventForm' && !form.date.value) form.date.value = ymd(new Date());
+      form.querySelector('input[name=title]').focus();
+    }
+    return;
+  }
+  const r = ev.target.closest('[data-refresh]');
+  if (r) { refreshSection(r.dataset.refresh, r); return; }
+  const k = ev.target.closest('[data-complete]');
+  if (k) { const [l, id] = k.dataset.complete.split('|'); completeTask(l, id, k); }
+});
+
+$('#eventForm').allday.addEventListener('change', e => { $('#eventForm [data-times]').classList.toggle('hidden', e.target.checked); });
+$('#eventForm').start.addEventListener('change', e => {
+  const f = $('#eventForm'); const [h, m] = e.target.value.split(':').map(Number);
+  if (!f.end.value || f.end.value <= e.target.value) f.end.value = `${pad(Math.min(h + 1, 23))}:${pad(m)}`;
+});
+
+$('#eventForm').addEventListener('submit', async e => {
+  e.preventDefault(); const f = e.target; const b = f.querySelector('[type=submit]'); b.disabled = true;
+  try { await createEvent(f); f.reset(); f.classList.add('hidden'); $('#eventForm [data-times]').classList.remove('hidden'); toast('Termin gespeichert.'); await loadCalendar(); renderCalendar(); renderSummary(); }
+  catch (err) { handleError(err); }
+  finally { b.disabled = false; }
+});
+
+$('#taskForm').addEventListener('submit', async e => {
+  e.preventDefault(); const f = e.target; const b = f.querySelector('[type=submit]'); b.disabled = true;
+  try { await createTask(f); f.title.value = ''; f.due.value = ''; f.classList.add('hidden'); toast('Aufgabe gespeichert.'); await loadTasks(); renderTasks(); renderSummary(); }
+  catch (err) { handleError(err); }
+  finally { b.disabled = false; }
+});
+
+$('#refreshBtn').addEventListener('click', () => loadAll());
+
+function openKonten() {
+  const f = $('#kontenForm');
+  f.name.value = CONFIG.NAME || '';
+  [0, 1, 2].forEach(i => { const a = CONFIG.ACCOUNTS[i]; f['e' + i].value = a ? a.email : ''; f['l' + i].value = a ? a.label : ''; });
+  $('#kontenCancel').classList.toggle('hidden', !CONFIG.ACCOUNTS.length);
+  show('konten');
+}
+$('#kontenBtn').addEventListener('click', openKonten);
+$('#kontenCancel').addEventListener('click', () => start());
+$('#kontenForm').addEventListener('submit', e => {
+  e.preventDefault(); const f = e.target;
+  const accounts = [];
+  [0, 1, 2].forEach(i => {
+    const email = f['e' + i].value.trim().toLowerCase();
+    if (!email || accounts.some(a => a.email === email)) return;
+    const label = f['l' + i].value.trim() || email.split('@')[0];
+    accounts.push(i === 0 ? { email, label, main: true, mail: true, calendar: true, tasks: true } : { email, label, mail: true });
+  });
+  const old = CONFIG.ACCOUNTS.map(a => a.email).join();
+  try { localStorage.setItem(ACC_KEY, JSON.stringify({ name: f.name.value.trim(), accounts })); } catch {}
+  if (old !== accounts.map(a => a.email).join()) {
+    for (const email in tokens) if (!accounts.some(a => a.email === email)) delete tokens[email];
+    saveTokens();
+    Object.assign(state, { events: null, tasks: null, lists: [], mail: {}, calError: null, taskError: null });
+  }
+  loadAccounts();
+  start();
+});
+document.addEventListener('keydown', e => {
+  if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey && !e.altKey && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && !$('#app').classList.contains('hidden')) loadAll();
+});
+
+$('#logoutBtn').addEventListener('click', () => {
+  for (const email in tokens) { try { google.accounts.oauth2.revoke(tokens[email].access_token, () => {}); } catch {} }
+  tokens = {}; saveTokens();
+  Object.assign(state, { events: null, tasks: null, lists: [], mail: {}, calError: null, taskError: null });
+  start();
+});
+
+setInterval(() => { if (!$('#app').classList.contains('hidden') && !document.hidden) loadAll(); }, CONFIG.REFRESH_MINUTES * 60000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && !$('#app').classList.contains('hidden') && (!state.lastUpdate || Date.now() - state.lastUpdate > 30000)) loadAll();
+});
+
+start();
+</script>
+</body>
+</html>
